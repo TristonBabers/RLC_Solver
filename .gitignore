@@ -1,0 +1,55 @@
+# MacOS folder stuff
+**/.DS_Store
+
+# Visual Studio
+/.vs
+WLSBuild/
+WLS_Build/
+wslbuild/
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# vscode
+.vscode
+
+# CLion
+.idea
+build
+Build
+builds
+Builds
+out
+
+# cmake
+cmake-build-*
