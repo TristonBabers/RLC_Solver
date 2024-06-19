@@ -1,76 +1,104 @@
 /* Algorithm Description:
-* 1. Create a graph of "routes" from t
+* 1. Create a graph of "routes" from the node around a voltage source to
 * 
 * 
 * 
 * Limitations:
 * - Only works if there is a single voltage source
+* --> Just use superposition on all other sources, and we're fine.
 */
 
+#include <iostream>
+#include <unordered_map>
 #include <complex>
+#include <optional>
+#include <memory>
 
-using Complex = std::complex<float>;
+namespace RLC_SOLVER {
 
-// Circuit = component
-class Circuit : public Component {
-    Circuit (float aVoltage, float aCurrent=null) : v(aVoltage), c(aCurrent) {};
-};
+    using Complex = std::complex<float>;
 
-class Node {
-    std::string theName;
-    std::vector<Component> connections;
-};
-
-class Resistor : public Component<Resistor> {
-protected:
-    doImpedence() {
-        return Complex{Resistance};
+    struct Node {
+        std::string name;
+        std::optional<float> voltage;
+        std::optional<float> current;
     };
-    float Resistance;
-};
 
-template <typename Derived>
-class Component {
-public:
-    std::shared_pointer<Node> crossFrom(const std::shared_pointer<Node> aNode) {
-        if (aNode == node1) return node2;
-        return node1;
-    }
-    Complex getImpedence() {
-        return Derived->doImpedence();
-    }
-    std::shared_pointer<Node> node1;
-    std::shared_pointer<Node> node2;
-    std::optional<Voltage> v;
-    std::optional<Current> c;
-};
+   // template <typename Derived>
+    class Component {
+    public:
+        /*
+        std::shared_ptr<Node> crossFrom(const std::shared_ptr<Node> aNode) {
+            if (aNode == node1) return node2;
+            return node1;
+        }*/
+        virtual Complex getImpedence() {
+            return 0;
+        }
+        std::string node1;
+        std::string node2;
+    };
 
-class Route {
-    std::variant<std::vector<Route>, std::vector<Component>> route;
-};
+    using CircuitMap = std::unordered_map<std::string, std::vector<Component>>;
+    using Path = std::vector<Component>;
+    
+    struct Circuit {
+        std::string start;
+        std::string end;
+        CircuitMap map;
+    };
 
-std::vector<Route> buildRoutes(Component aComponent, Component) {
-    std::vector<Route> theRoutes;
-    for (theConnection : aComponent.node1.connections) {
-        std::shared_pointer<Node> theNextNode{theConnection.crossFrom(aComponent.node1)};
-        if (theNextNode != aComponent.node2) {
-            theRoutes.push_back(buildRoute(theNextNode));
-        } else {
-            theRoutes.push_back(Route{theConnection});
+    //class Resistor : public Component<Resistor> {
+    class Resistor : public Component {
+    public:
+        virtual Complex getImpedence() override {
+            return Complex{Resistance};
+        };
+    protected:
+        float Resistance;
+    };
+
+    void findAllPaths(const CircuitMap& aCircuit, const std::string& aStart,
+                                   const std::string& anEnd, std::vector<std::string>& aPath,
+                                   std::vector<Component>& anEdgePath,
+                                   std::vector<std::vector<Component>>& aVectorOfPaths) {
+        aPath.push_back(aStart);
+        if (aStart == anEnd) {
+            aVectorOfPaths.push_back(anEdgePath);
+            auto theItr = aCircuit.find(aStart);
+            if (theItr != aCircuit.end()) {
+                for (const auto& theComponent : theItr->second) {
+                    const std::string& theNode = theComponent.node2;
+                    if (find(aPath.begin(), aPath.end(), theNode) == aPath.end()) {
+                        anEdgePath.push_back(theComponent);
+                        findAllPaths(aCircuit, theNode, anEnd, aPath, anEdgePath, aVectorOfPaths);
+                        anEdgePath.pop_back();
+                    }
+                }
+            }
         }
     }
-    return theRoutes;
-}
 
-findImpedences(std::vector<Route> aRoutes) {
-    while (aRoutes) {
-        Route aRoutes
-        
+    void findImpedences(std::vector<Path>& aVectorOfPaths) {
+        //while (aVectorOfPaths) {
+        //}
+    }
+
+    void findVoltagesAndCurrents(std::vector<Path>& aVectorOfPaths) {
+    
+    }
+
+    void solve(const Circuit& aCircuit) {
+        std::vector<std::string> thePath;
+        std::vector<Component> theEdgePath;
+        std::vector<Path> thePaths;
+        findAllPaths(aCircuit.map, aCircuit.start, aCircuit.end, thePath, theEdgePath, thePaths);
+        findImpedences(thePaths);
+        findVoltagesAndCurrents(thePaths);
     }
 }
 
-void solve(theCircuit) {
-    std::vector<Route> theRoutes{buildRoutes(theCircuit)};
-    findImpedences(theRoutes);
-    findVoltagesAndCurrents(theRoutes);
-}
+    int main() {
+        //std::cout << "test\n";
+        return 0;
+    }
