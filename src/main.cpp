@@ -140,13 +140,13 @@ namespace RLC_SOLVER {
         std::cout << std::fixed << std::setprecision(2);
         std::cout << std::setw(15) << " " << "          ______/\\  /\\  /\\_____________/\\  /\\  /\\_________\n";
         std::cout << std::setw(15) << " " << "         |        \\/  \\/          |      \\/  \\/           |\n";
-        std::cout << std::setw(15) << " " << "         |  R1 = " << std::setw(10) << std::to_string(aResistor1) << " ohms " << std::setw(8) << "| R2 = " << std::setw(10) << std::to_string(aResistor2) << " ohms " << std::setw(3) << "|\n";
-        std::cout << std::setw(15) << " " << "   ______|______                  |                       |\n";
+        std::cout << std::setw(15) << " " << "         |  R1 = " << std::setw(17) << std::left << std::to_string(aResistor1) + " ohms " << "| R2 = " << std::setw(17) << std::left << std::to_string(aResistor2) + " ohms" << std::setw(3) << std::left << "|\n";
+        std::cout << std::setw(15) << " " << "  ______|______                  |                       |\n";
         std::cout << std::setw(15) << " " << "  /      +      \\                 |                       |\n";
         std::cout << std::setw(15) << " " << " /               \\                o                       |\n";
-        std::cout << std::setw(15) << " " << "/  " << std::setw(5) << std::to_string(aVoltage) + " V " << std::setw(4) << "\\" << "      V(R2) = " << std::setw(10) << std::to_string(theCircuit.nodeList[1]->voltage) + " V " << std::setw(16) << "|\n";
+        std::cout << std::setw(15) << " " << "/  " << std::setw(15) << std::left << std::to_string(aVoltage) + " V " << std::setw(4) << std::left << "\\" << "      V(R2) = " << std::setw(22) << std::left << std::to_string(theCircuit.nodeList[1]->voltage) + " V " << "|\n";
         std::cout << std::setw(15) << " " << "\\                 /                                       |\n";
-        std::cout << std::setw(15) << " " << " \\      -        /                                        |\n";
+        std::cout << std::setw(15) << " " << " \\       -       /                                        |\n";
         std::cout << std::setw(15) << " " << "  \\_____________/                                         |\n";
         std::cout << std::setw(15) << " " << "         |                                                |\n";
         std::cout << std::setw(15) << " " << "         |                                                |\n";
@@ -159,6 +159,6 @@ namespace RLC_SOLVER {
     int main() {
         using namespace RLC_SOLVER;
         //                        V    R1   R2
-        testVoltageDividerCircuit(12, 20, 10);
+        testVoltageDividerCircuit(1200, 300, 100);
         return 0;
     }
