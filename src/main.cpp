@@ -12,103 +12,153 @@
 #include <unordered_map>
 #include <complex>
 #include <optional>
+#include <iomanip>
 #include <memory>
+#include <vector>
 
 namespace RLC_SOLVER {
 
     using Complex = std::complex<float>;
 
-    struct Node {
+    class Component; // Forward Declare
+
+    class Node {
+    public:
+        Node(const std::string& aName, std::vector<std::unique_ptr<Component>> aConnections={}) :
+                name(aName), connections{std::move(aConnections)}, impedence{std::nullopt}, voltage{0}, current{0} {}
+
+        Node(const std::string& aName, float aVoltage, float aCurrent, std::vector<std::unique_ptr<Component>> aConnections={}) :
+                name(aName), connections{std::move(aConnections)}, impedence{std::nullopt}, voltage{aVoltage}, current{aCurrent} {}
+
+        bool operator==(const Node& anotherNode) const {
+            return name == anotherNode.name;
+        }
+
         std::string name;
-        std::optional<float> voltage;
-        std::optional<float> current;
+        float voltage;
+        float current;
+        std::optional<Complex> impedence;
+        std::vector<std::unique_ptr<Component>> connections;
     };
 
-   // template <typename Derived>
+    using NodePtr = std::shared_ptr<Node>;
+
     class Component {
     public:
-        Component(const std::string& aNode1, const std::string& aNode2) : node1(aNode1), node2(aNode2) {};
-        /*
-        std::shared_ptr<Node> crossFrom(const std::shared_ptr<Node> aNode) {
-            if (aNode == node1) return node2;
-            return node1;
-        }*/
-        virtual Complex getImpedence() {
-            return 0;
+        Component(const NodePtr& aNode) : nextNode(aNode) {}
+
+        virtual Complex getImpedence() const {
+            return 9999;
         }
-        std::string node1;
-        std::string node2;
+
+        virtual ~Component() = default;
+
+        NodePtr nextNode;
     };
 
-    using CircuitMap = std::unordered_map<std::string, std::vector<Component>>;
-    using Path = std::vector<Component>;
-    
-    struct Circuit {
-        std::string start;
-        std::string end;
-        CircuitMap map;
-    };
-
-    //class Resistor : public Component<Resistor> {
     class Resistor : public Component {
     public:
-        Resistor(const std::string& aNode1, const std::string& aNode2, float aResistance) : Component(aNode1, aNode2), resistance(aResistance) {};
-        virtual Complex getImpedence() override {
+        Resistor(const NodePtr& aNode, float aResistance) : Component(aNode), resistance(aResistance) {}
+
+        virtual Complex getImpedence() const override {
             return Complex{resistance};
-        };
+        }
+
     protected:
         float resistance;
     };
 
-    void findAllPaths(const CircuitMap& aCircuit, const std::string& aStart,
-                      const std::string& anEnd, std::vector<std::string>& aPath,
-                      std::vector<Component>& anEdgePath,
-                      std::vector<std::vector<Component>>& aVectorOfPaths) {
-        aPath.push_back(aStart);
-        if (aStart == anEnd) {
-            aVectorOfPaths.push_back(anEdgePath);
-        } else {
-            auto theItr = aCircuit.find(aStart);
-            if (theItr != aCircuit.end()) {
-                for (const auto& theComponent : theItr->second) {
-                    const std::string& theNode = theComponent.node2;
-                    if (find(aPath.begin(), aPath.end(), theNode) == aPath.end()) {
-                        anEdgePath.push_back(theComponent);
-                        findAllPaths(aCircuit, theNode, anEnd, aPath, anEdgePath, aVectorOfPaths);
-                        anEdgePath.pop_back();
-                    }
-                }
+    // Finds impedence from start node and every node in between to the end node.
+    // Assumes there is a directed graph of nodes connected by components from the start node to the end node.
+    Complex findImpedences(const NodePtr& aNode, const NodePtr& anEndNode) {
+        if (aNode == anEndNode) aNode->impedence = 0;
+        if (aNode->impedence.has_value()) return aNode->impedence.value();
+        if (aNode->connections.size() > 1) {
+            Complex theParallelSum{0};
+            for (const auto& theComponent : aNode->connections) {
+                theParallelSum += Complex{1} / (theComponent->getImpedence() + findImpedences(theComponent->nextNode, anEndNode)); // Parallel
+            }
+            aNode->impedence = Complex{1} / theParallelSum;
+        } else { // (aNode->connections.size() == 1)
+            const auto& theComponent{aNode->connections[0]};
+            if (theComponent->nextNode == anEndNode) {
+                aNode->impedence = theComponent->getImpedence(); // Serial
+            } else {
+                aNode->impedence = theComponent->getImpedence() + findImpedences(theComponent->nextNode, anEndNode);  // Serial
             }
         }
+        return aNode->impedence.value();
     }
 
-    void findImpedences(std::vector<Path>& aVectorOfPaths) {
-        while (aVectorOfPaths) {
+    class Circuit {
+    public:
+        Circuit(const std::vector<NodePtr>& aNodeList, const NodePtr& aStartNode, const NodePtr& anEndNode) :
+                nodeList{aNodeList}, startNode{aStartNode}, endNode{anEndNode} {}
+        std::vector<NodePtr> nodeList;
+        NodePtr startNode;
+        NodePtr endNode;
+    };
+
+    // This assumes aStartNode is the node connected to V+ on the voltage source.
+    void findVoltagesAndCurrents(const NodePtr& aStartNode, const std::vector<NodePtr>& aNodeList) {
+        for (const NodePtr& theNode : aNodeList) {
+            theNode->voltage = Complex{aStartNode->voltage * (theNode->impedence.value() / aStartNode->impedence.value())}.real(); // Voltage Divider // DEBUG only get real part for now.
         }
     }
 
-    void findVoltagesAndCurrents(std::vector<Path>& aVectorOfPaths) {
-    
+    void solve(Circuit& aCircuit) {
+        findImpedences(aCircuit.startNode, aCircuit.endNode);
+        findVoltagesAndCurrents(aCircuit.startNode, aCircuit.nodeList);
     }
 
-    void solve(const Circuit& aCircuit) {
-        std::vector<std::string> thePath;
-        std::vector<Component> theEdgePath;
-        std::vector<Path> thePaths;
-        findAllPaths(aCircuit.map, aCircuit.start, aCircuit.end, thePath, theEdgePath, thePaths);
-        findImpedences(thePaths);
-        findVoltagesAndCurrents(thePaths);
+    Circuit makeVoltageDividerCircuit(float aVoltage, float aResistor1, float aResistor2) {
+        // Start Node (Required)
+        NodePtr startNode{std::make_shared<Node>("START", aVoltage, 0.0f)};
+
+        // Initialize Nodes
+        NodePtr endNode{std::make_shared<Node>("END")};
+        NodePtr nodeB{std::make_shared<Node>("B")};
+
+        // Connect Circuit
+        startNode->connections.push_back(std::make_unique<Resistor>(nodeB, aResistor1));
+        nodeB->connections.push_back(std::make_unique<Resistor>(endNode, aResistor2));
+
+        // End Node (Required)
+        endNode->impedence = 0;
+        endNode->voltage = 0;
+        
+        // Solve Circuit
+        std::vector<NodePtr> theNodeList{startNode, nodeB, endNode};
+        return Circuit{theNodeList, startNode, endNode};
+    }
+
+    bool testVoltageDividerCircuit(float aVoltage, float aResistor1, float aResistor2) {
+        // Create Circuit
+        Circuit theCircuit{makeVoltageDividerCircuit(aVoltage, aResistor1, aResistor2)};
+        solve(theCircuit);
+        //Display
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << std::setw(15) << " " << "          ______/\\  /\\  /\\_____________/\\  /\\  /\\_________\n";
+        std::cout << std::setw(15) << " " << "         |        \\/  \\/          |      \\/  \\/           |\n";
+        std::cout << std::setw(15) << " " << "         |  R1 = " << std::setw(10) << std::to_string(aResistor1) << " ohms " << std::setw(8) << "| R2 = " << std::setw(10) << std::to_string(aResistor2) << " ohms " << std::setw(3) << "|\n";
+        std::cout << std::setw(15) << " " << "   ______|______                  |                       |\n";
+        std::cout << std::setw(15) << " " << "  /      +      \\                 |                       |\n";
+        std::cout << std::setw(15) << " " << " /               \\                o                       |\n";
+        std::cout << std::setw(15) << " " << "/  " << std::setw(5) << std::to_string(aVoltage) + " V " << std::setw(4) << "\\" << "      V(R2) = " << std::setw(10) << std::to_string(theCircuit.nodeList[1]->voltage) + " V " << std::setw(16) << "|\n";
+        std::cout << std::setw(15) << " " << "\\                 /                                       |\n";
+        std::cout << std::setw(15) << " " << " \\      -        /                                        |\n";
+        std::cout << std::setw(15) << " " << "  \\_____________/                                         |\n";
+        std::cout << std::setw(15) << " " << "         |                                                |\n";
+        std::cout << std::setw(15) << " " << "         |                                                |\n";
+        std::cout << std::setw(15) << " " << "         |________________________________________________|\n";
+
+        
+        return true;
     }
 }
-
     int main() {
         using namespace RLC_SOLVER;
-
-        CircuitMap test{{std::string("A"), Path{Resistor{"A", "B", 10.0}}}, {std::string("B"), Path{}}};
-
-        Circuit singleResistor{"A", "B", test};
-
-        solve(singleResistor);
-        std::cout << "test\n";
+        //                        V    R1   R2
+        testVoltageDividerCircuit(12, 20, 10);
         return 0;
     }
