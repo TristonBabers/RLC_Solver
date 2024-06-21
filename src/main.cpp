@@ -10,106 +10,10 @@
 
 #include <iostream>
 #include <unordered_map>
-#include <complex>
-#include <optional>
 #include <iomanip>
-#include <memory>
 #include <vector>
 
 namespace RLC_SOLVER {
-
-    using Complex = std::complex<float>;
-
-    class Component; // Forward Declare
-
-    class Node {
-    public:
-        Node(const std::string& aName, std::vector<std::unique_ptr<Component>> aConnections={}) :
-                name(aName), connections{std::move(aConnections)}, impedence{std::nullopt}, voltage{0}, current{0} {}
-
-        Node(const std::string& aName, float aVoltage, float aCurrent, std::vector<std::unique_ptr<Component>> aConnections={}) :
-                name(aName), connections{std::move(aConnections)}, impedence{std::nullopt}, voltage{aVoltage}, current{aCurrent} {}
-
-        bool operator==(const Node& anotherNode) const {
-            return name == anotherNode.name;
-        }
-
-        std::string name;
-        float voltage;
-        float current;
-        std::optional<Complex> impedence;
-        std::vector<std::unique_ptr<Component>> connections;
-    };
-
-    using NodePtr = std::shared_ptr<Node>;
-
-    class Component {
-    public:
-        Component(const NodePtr& aNode) : nextNode(aNode) {}
-
-        virtual Complex getImpedence() const {
-            return 9999;
-        }
-
-        virtual ~Component() = default;
-
-        NodePtr nextNode;
-    };
-
-    class Resistor : public Component {
-    public:
-        Resistor(const NodePtr& aNode, float aResistance) : Component(aNode), resistance(aResistance) {}
-
-        virtual Complex getImpedence() const override {
-            return Complex{resistance};
-        }
-
-    protected:
-        float resistance;
-    };
-
-    // Finds impedence from start node and every node in between to the end node.
-    // Assumes there is a directed graph of nodes connected by components from the start node to the end node.
-    Complex findImpedences(const NodePtr& aNode, const NodePtr& anEndNode) {
-        if (aNode == anEndNode) aNode->impedence = 0;
-        if (aNode->impedence.has_value()) return aNode->impedence.value();
-        if (aNode->connections.size() > 1) {
-            Complex theParallelSum{0};
-            for (const auto& theComponent : aNode->connections) {
-                theParallelSum += Complex{1} / (theComponent->getImpedence() + findImpedences(theComponent->nextNode, anEndNode)); // Parallel
-            }
-            aNode->impedence = Complex{1} / theParallelSum;
-        } else { // (aNode->connections.size() == 1)
-            const auto& theComponent{aNode->connections[0]};
-            if (theComponent->nextNode == anEndNode) {
-                aNode->impedence = theComponent->getImpedence(); // Serial
-            } else {
-                aNode->impedence = theComponent->getImpedence() + findImpedences(theComponent->nextNode, anEndNode);  // Serial
-            }
-        }
-        return aNode->impedence.value();
-    }
-
-    class Circuit {
-    public:
-        Circuit(const std::vector<NodePtr>& aNodeList, const NodePtr& aStartNode, const NodePtr& anEndNode) :
-                nodeList{aNodeList}, startNode{aStartNode}, endNode{anEndNode} {}
-        std::vector<NodePtr> nodeList;
-        NodePtr startNode;
-        NodePtr endNode;
-    };
-
-    // This assumes aStartNode is the node connected to V+ on the voltage source.
-    void findVoltagesAndCurrents(const NodePtr& aStartNode, const std::vector<NodePtr>& aNodeList) {
-        for (const NodePtr& theNode : aNodeList) {
-            theNode->voltage = Complex{aStartNode->voltage * (theNode->impedence.value() / aStartNode->impedence.value())}.real(); // Voltage Divider // DEBUG only get real part for now.
-        }
-    }
-
-    void solve(Circuit& aCircuit) {
-        findImpedences(aCircuit.startNode, aCircuit.endNode);
-        findVoltagesAndCurrents(aCircuit.startNode, aCircuit.nodeList);
-    }
 
     Circuit makeVoltageDividerCircuit(float aVoltage, float aResistor1, float aResistor2) {
         // Start Node (Required)
