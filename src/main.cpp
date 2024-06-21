@@ -27,6 +27,7 @@ namespace RLC_SOLVER {
    // template <typename Derived>
     class Component {
     public:
+        Component(const std::string& aNode1, const std::string& aNode2) : node1(aNode1), node2(aNode2) {};
         /*
         std::shared_ptr<Node> crossFrom(const std::shared_ptr<Node> aNode) {
             if (aNode == node1) return node2;
@@ -51,20 +52,22 @@ namespace RLC_SOLVER {
     //class Resistor : public Component<Resistor> {
     class Resistor : public Component {
     public:
+        Resistor(const std::string& aNode1, const std::string& aNode2, float aResistance) : Component(aNode1, aNode2), resistance(aResistance) {};
         virtual Complex getImpedence() override {
-            return Complex{Resistance};
+            return Complex{resistance};
         };
     protected:
-        float Resistance;
+        float resistance;
     };
 
     void findAllPaths(const CircuitMap& aCircuit, const std::string& aStart,
-                                   const std::string& anEnd, std::vector<std::string>& aPath,
-                                   std::vector<Component>& anEdgePath,
-                                   std::vector<std::vector<Component>>& aVectorOfPaths) {
+                      const std::string& anEnd, std::vector<std::string>& aPath,
+                      std::vector<Component>& anEdgePath,
+                      std::vector<std::vector<Component>>& aVectorOfPaths) {
         aPath.push_back(aStart);
         if (aStart == anEnd) {
             aVectorOfPaths.push_back(anEdgePath);
+        } else {
             auto theItr = aCircuit.find(aStart);
             if (theItr != aCircuit.end()) {
                 for (const auto& theComponent : theItr->second) {
@@ -80,8 +83,8 @@ namespace RLC_SOLVER {
     }
 
     void findImpedences(std::vector<Path>& aVectorOfPaths) {
-        //while (aVectorOfPaths) {
-        //}
+        while (aVectorOfPaths) {
+        }
     }
 
     void findVoltagesAndCurrents(std::vector<Path>& aVectorOfPaths) {
@@ -99,6 +102,13 @@ namespace RLC_SOLVER {
 }
 
     int main() {
-        //std::cout << "test\n";
+        using namespace RLC_SOLVER;
+
+        CircuitMap test{{std::string("A"), Path{Resistor{"A", "B", 10.0}}}, {std::string("B"), Path{}}};
+
+        Circuit singleResistor{"A", "B", test};
+
+        solve(singleResistor);
+        std::cout << "test\n";
         return 0;
     }
