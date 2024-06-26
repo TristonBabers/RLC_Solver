@@ -11,7 +11,7 @@ namespace RLC_SOLVER {
         static Circuit solve(const std::vector<Circuit>& aCircuits);
     protected:
         static std::string findImpedences(const NodePtr& aNode, const NodePtr& anEndNode);
-        static void findVoltages(const NodePtr& aStartNode, const std::vector<NodePtr>& aNodeList);
+        static void findVoltages(const NodePtr& aStartNode, const NodePtr& anEndNode, const std::vector<NodePtr>& aNodeList);
         static void findCurrents(const std::vector<NodePtr>& aNodeList);
     };
 

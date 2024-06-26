@@ -33,6 +33,55 @@ namespace RLC_SOLVER {
         return Circuit{theNodeList, startNode, endNode, theComponentList};
     }
 
+    Circuit makeTripleVoltageDividerCircuit() {
+        // Initialize Nodes
+        NodePtr startNode{std::make_shared<Node>("START")};
+        NodePtr endNode{std::make_shared<Node>("END", "0")}; // REQUIRED: set endnode impedence!!!
+        NodePtr nodeB{std::make_shared<Node>("B")};
+        NodePtr nodeC{std::make_shared<Node>("C")};
+        
+        // Initialize Components
+        ComponentPtr r1{std::make_shared<Component>("R1", nodeB)};
+        ComponentPtr r2{std::make_shared<Component>("R2", nodeC)};
+        ComponentPtr r3{std::make_shared<Component>("R3", endNode)};
+        
+        // Connect Circuit
+        startNode->connections.push_back(r1);
+        nodeB->connections.push_back(r2);
+        nodeC->connections.push_back(r3);
+        
+        // Solve Circuit
+        std::vector<NodePtr> theNodeList{startNode, nodeB, nodeC, endNode};
+        std::vector<ComponentPtr> theComponentList{r1, r2, r3};
+        return Circuit{theNodeList, startNode, endNode, theComponentList};
+    }
+
+
+    Circuit makeParallelComboCircuit() {
+        // Initialize Nodes
+        NodePtr startNode{std::make_shared<Node>("START")};
+        NodePtr endNode{std::make_shared<Node>("END", "0")}; // REQUIRED: set endnode impedence!!!
+        NodePtr nodeB{std::make_shared<Node>("B")};
+        NodePtr nodeC{std::make_shared<Node>("C")};
+        
+        // Initialize Components
+        ComponentPtr r1{std::make_shared<Component>("R1", nodeB)};
+        ComponentPtr r2{std::make_shared<Component>("R2", nodeC)};
+        ComponentPtr r3{std::make_shared<Component>("R3", endNode)};
+        ComponentPtr r4{std::make_shared<Component>("R4", endNode)};
+        
+        // Connect Circuit
+        startNode->connections.push_back(r1);
+        nodeB->connections.push_back(r2);
+        nodeB->connections.push_back(r4);
+        nodeC->connections.push_back(r3);
+        
+        // Solve Circuit
+        std::vector<NodePtr> theNodeList{startNode, nodeB, nodeC, endNode};
+        std::vector<ComponentPtr> theComponentList{r1, r2, r3, r4};
+        return Circuit{theNodeList, startNode, endNode, theComponentList};
+    }
+
 std::string formatJson(const std::string& compactJson) {
     std::string formattedJson;
     int level = 0;
@@ -79,7 +128,10 @@ std::string formatJson(const std::string& compactJson) {
 }
 
     void test() {
-        Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeVoltageDividerCircuit()})};
+        //Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeVoltageDividerCircuit()})};
+        //Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeTripleVoltageDividerCircuit()})};
+        Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeParallelComboCircuit()})};
+        
         std::string formatted{formatJson(theResult.toJSON())};
         std::cout << formatJson(theResult.toJSON());
     }

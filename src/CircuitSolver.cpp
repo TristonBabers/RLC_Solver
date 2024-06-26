@@ -7,9 +7,17 @@ namespace RLC_SOLVER {
     std::string CircuitSolver::findImpedences(const NodePtr& aNode, const NodePtr& anEndNode) {
         if (!aNode->impedence.has_value()) {
             if (aNode->connections.size() > 1) {
-                std::string theParallelSum{0};
+                std::string theParallelSum;
+                bool theFirst{true};
                 for (const auto& theComponent : aNode->connections) {
-                    theParallelSum += " + 1 / (" + theComponent->getImpedence() + " + " + findImpedences(theComponent->nextNode, anEndNode) + ")"; // Parallel
+                    std::string theRecursiveImpedence{findImpedences(theComponent->nextNode, anEndNode)}; // Performance Optimization
+                    if (!theFirst) theParallelSum += " + ";
+                    if (theRecursiveImpedence != "0") {
+                        theParallelSum += "1/(" + theComponent->getImpedence() + " + " + theRecursiveImpedence + ")"; // Parallel
+                    } else {
+                        theParallelSum += "1/(" + theComponent->getImpedence() + ")"; // Parallel
+                    }
+                    theFirst = false;
                 }
                 aNode->impedence = "1 / (" + theParallelSum + ")";
             } else { // (aNode->connections.size() == 1)
@@ -17,7 +25,7 @@ namespace RLC_SOLVER {
                 if (theComponent->nextNode == anEndNode) {
                     aNode->impedence = theComponent->getImpedence(); // Serial
                 } else {
-                    aNode->impedence = theComponent->getImpedence() + findImpedences(theComponent->nextNode, anEndNode); // Serial
+                    aNode->impedence = theComponent->getImpedence() + " + " + findImpedences(theComponent->nextNode, anEndNode); // Serial
                 }
             }
         }
@@ -25,10 +33,11 @@ namespace RLC_SOLVER {
     }
 
     // This assumes aStartNode is the node connected to V+ on the voltage source.
-    void CircuitSolver::findVoltages(const NodePtr& aStartNode, const std::vector<NodePtr>& aNodeList) {
+    void CircuitSolver::findVoltages(const NodePtr& aStartNode, const NodePtr& anEndNode, const std::vector<NodePtr>& aNodeList) {
         for (const NodePtr& theNode : aNodeList) {
             if (theNode == aStartNode) theNode->voltage = aStartNode->getVoltage(); // Performance Optimization
-            else theNode->voltage = aStartNode->getVoltage() + " * (" + theNode->impedence.value() + "/(" + aStartNode->impedence.value() + "))"; // Voltage Divider
+            else if (theNode == anEndNode) theNode->voltage = "0"; // Performance Optimization
+            else theNode->voltage = aStartNode->getVoltage() + " * (" + theNode->impedence.value() + ") / (" + aStartNode->impedence.value() + ")"; // Voltage Divider
         }
     }
 
@@ -50,7 +59,7 @@ namespace RLC_SOLVER {
     Circuit CircuitSolver::solve(const std::vector<Circuit>& aCircuits) {
         for (auto& theCircuit : aCircuits) {
             findImpedences(theCircuit.startNode, theCircuit.endNode);
-            findVoltages(theCircuit.startNode, theCircuit.nodeList);
+            findVoltages(theCircuit.startNode, theCircuit.endNode, theCircuit.nodeList);
             findCurrents(theCircuit.nodeList);
         }
          // TODO: Combine all nodes using superposition for multiple voltage sources (Add all voltages for all nodes, add all currents for all componentes together, according to matching names)
