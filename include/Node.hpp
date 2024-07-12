@@ -26,6 +26,9 @@ namespace RLC_SOLVER {
             return delimiter(name);
         }
 
+        size_t preOrder{0};
+        size_t postOrder{0};
+        bool visited{false};
         std::string name;
         std::string voltage;
         std::optional<std::string> impedence;

@@ -9,6 +9,7 @@
 */
 
 #include "CircuitSolver.hpp"
+#include "DAGifier.hpp"
 #include <iostream>
 
 namespace RLC_SOLVER {
@@ -26,6 +27,29 @@ namespace RLC_SOLVER {
         // Connect Circuit
         startNode->connections.push_back(r1);
         nodeB->connections.push_back(r2);
+        
+        // Solve Circuit
+        std::vector<NodePtr> theNodeList{startNode, nodeB, endNode};
+        std::vector<ComponentPtr> theComponentList{r1, r2};
+        return Circuit{theNodeList, startNode, endNode, theComponentList};
+    }
+
+    Circuit makeVoltageDividerUnDaggedCircuit() {
+        // Initialize Nodes
+        NodePtr startNode{std::make_shared<Node>("START")};
+        NodePtr endNode{std::make_shared<Node>("END", "0")}; // REQUIRED: set endnode impedence!!!
+        NodePtr nodeB{std::make_shared<Node>("B")};
+        
+        // Initialize Components
+        ComponentPtr r1{std::make_shared<Component>("R1", nodeB)};
+        ComponentPtr r1_reverse{std::make_shared<Component>("R1", startNode)};
+        ComponentPtr r2{std::make_shared<Component>("R2", endNode)};
+        ComponentPtr r2_reverse{std::make_shared<Component>("R2", nodeB)};
+        
+        // Connect Circuit
+        startNode->connections = std::vector<ComponentPtr>({r1});
+        nodeB->connections = std::vector<ComponentPtr>({r2, r1_reverse});
+        endNode->connections = std::vector<ComponentPtr>({r2_reverse});
         
         // Solve Circuit
         std::vector<NodePtr> theNodeList{startNode, nodeB, endNode};
@@ -82,58 +106,63 @@ namespace RLC_SOLVER {
         return Circuit{theNodeList, startNode, endNode, theComponentList};
     }
 
-std::string formatJson(const std::string& compactJson) {
-    std::string formattedJson;
-    int level = 0;
-    bool inQuotes = false;
+    std::string formatJson(const std::string& compactJson) {
+        std::string formattedJson;
+        int level = 0;
+        bool inQuotes = false;
 
-    for (char ch : compactJson) {
-        switch (ch) {
-            case '{':
-            case '[':
-                formattedJson += ch;
-                if (!inQuotes) {
-                    level++;
-                    formattedJson += '\n';
-                    formattedJson += std::string(level, '\t');
-                }
-                break;
-            case '}':
-            case ']':
-                if (!inQuotes) {
-                    level--;
-                    formattedJson += '\n';
-                    formattedJson += std::string(level, '\t');
-                }
-                formattedJson += ch;
-                break;
-            case ',':
-                formattedJson += ch;
-                if (!inQuotes) {
-                    formattedJson += '\n';
-                    formattedJson += std::string(level, '\t');
-                }
-                break;
-            case '"':
-                formattedJson += ch;
-                inQuotes = !inQuotes;
-                break;
-            default:
-                formattedJson += ch;
-                break;
+        for (char ch : compactJson) {
+            switch (ch) {
+                case '{':
+                case '[':
+                    formattedJson += ch;
+                    if (!inQuotes) {
+                        level++;
+                        formattedJson += '\n';
+                        formattedJson += std::string(level, '\t');
+                    }
+                    break;
+                case '}':
+                case ']':
+                    if (!inQuotes) {
+                        level--;
+                        formattedJson += '\n';
+                        formattedJson += std::string(level, '\t');
+                    }
+                    formattedJson += ch;
+                    break;
+                case ',':
+                    formattedJson += ch;
+                    if (!inQuotes) {
+                        formattedJson += '\n';
+                        formattedJson += std::string(level, '\t');
+                    }
+                    break;
+                case '"':
+                    formattedJson += ch;
+                    inQuotes = !inQuotes;
+                    break;
+                default:
+                    formattedJson += ch;
+                    break;
+            }
         }
+        return formattedJson;
     }
-
-    return formattedJson;
-}
 
     void test() {
         //Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeVoltageDividerCircuit()})};
         //Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeTripleVoltageDividerCircuit()})};
-        Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeParallelComboCircuit()})};
-        
-        std::string formatted{formatJson(theResult.toJSON())};
+        //Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeParallelComboCircuit()})};
+        Circuit theResult{CircuitSolver::solve(std::vector<Circuit>{makeVoltageDividerCircuit()})};
         std::cout << formatJson(theResult.toJSON());
+
+        Circuit theTemp{makeVoltageDividerUnDaggedCircuit()};
+        Dagifier::dagify(theTemp);
+        Circuit theOtherResult{CircuitSolver::solve(std::vector<Circuit>{theTemp})};
+
+        //std::string formatted{formatJson(theResult.toJSON())};
+        std::cout << formatJson(theOtherResult.toJSON());
     }
 
 }

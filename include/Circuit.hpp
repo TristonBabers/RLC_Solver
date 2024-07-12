@@ -11,7 +11,7 @@ namespace RLC_SOLVER {
         std::string toJSON();
 
         std::vector<NodePtr> nodeList;
-        std::vector<ComponentPtr> componentList;
+        std::vector<ComponentPtr> componentList; // Currently unused except for display purposes
         NodePtr startNode;
         NodePtr endNode;
     };
