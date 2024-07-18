@@ -1,5 +1,5 @@
 # RLC_Solver
-Solves RLC circuits via a website interface, implemented in C++. For more information, see [TristonBabers.com/rlc-solver](https://tristonbabers.com/rlc-solver/).
+Solves RLC circuits via a website interface, implemented in C++. See live at: [TristonBabers.com/rlc-solver](https://tristonbabers.com/rlc-solver/).
 
 ## Overview
 This repository contains the backend code for my website's RLC_Solver. It is designed to solve circuits consisting of only resistors, capacitors, and inductors calculating the theoretical voltages and currents across each component.
