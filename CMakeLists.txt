@@ -10,3 +10,8 @@ file(GLOB_RECURSE HEADERS "include/*.hpp")
 file(GLOB_RECURSE HEADERS "dependencies/*.hpp")
 
 add_executable(rlc_solver ${SOURCES})
+
+# Add full static linking flags
+set_target_properties(rlc_solver PROPERTIES
+    LINK_FLAGS "-static -static-libstdc++ -static-libgcc"
+)

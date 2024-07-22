@@ -10,7 +10,12 @@ namespace RLC_SOLVER {
                 std::string theParallelSum;
                 bool theFirst{true};
                 for (const auto& theComponent : aNode->connections) {
-                    std::string theRecursiveImpedence{findImpedences(theComponent->nextNode, anEndNode)}; // Performance Optimization
+                    std::string theRecursiveImpedence;
+                    if (theComponent->nextNode == anEndNode) {
+                        theRecursiveImpedence = "0"; // Performance Optimization
+                    } else {
+                        theRecursiveImpedence = findImpedences(theComponent->nextNode, anEndNode);
+                    }
                     if (!theFirst) theParallelSum += " + ";
                     if (theRecursiveImpedence != "0") {
                         theParallelSum += "1/(" + theComponent->getImpedence() + " + " + theRecursiveImpedence + ")"; // Parallel
