@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(RLC_Solver)
+project(rlc_solver)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -9,4 +9,4 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "include/*.hpp")
 file(GLOB_RECURSE HEADERS "dependencies/*.hpp")
 
-add_executable(RLC_Solver ${SOURCES})
+add_executable(rlc_solver ${SOURCES})

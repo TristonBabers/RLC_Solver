@@ -16,15 +16,15 @@ namespace RLC_SOLVER {
     public:
         Component(const std::string& aName, const NodePtr& aNode) : name(aName), nextNode(aNode) {}
 
-        std::string getName() inline const {
+        std::string getName() const {
             return name;
         }
 
-        std::string getImpedence() inline const {
+        std::string getImpedence() const {
             return delimiter(name);
         }
 
-        std::string getCurrent() inline const {
+        std::string getCurrent() const {
             return delimiter(name);
         }
 

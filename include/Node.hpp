@@ -18,11 +18,11 @@ namespace RLC_SOLVER {
             return name == anotherNode.name;
         }
 
-        std::string getName() inline const {
+        std::string getName() const {
             return name;
         }
 
-        std::string getVoltage() inline const {
+        std::string getVoltage() const {
             return delimiter(name);
         }
 
