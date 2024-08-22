@@ -106,6 +106,7 @@ namespace RLC_SOLVER {
         for (auto& theSourcesElement : theJson["Circuit"]["Sources"]) {
             for (auto& theSource : theSourcesElement.items()) {
                 NodePtr theVddNode = theNodes[theSource.value()["VDD"]];
+                theVddNode->voltage = theSource.key();
                 NodePtr theGNDNode = theNodes[theSource.value()["GND"]];
                 theSources.push_back({theVddNode, theGNDNode});
             }

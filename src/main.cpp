@@ -39,10 +39,10 @@ int main(int argc, char* argv[]) {
         //std::cout << "Recieved:\n" << std::string(argv[1]) << "\n\n"; // DEBUG
 
         // Full Release
-        std::cout << RLC_SOLVER::solve(argv[1]);
+        //std::cout << RLC_SOLVER::solve(argv[1]);
 
         // Pretty Mode
-        //std::cout << nlohmann::json::parse(RLC_SOLVER::solve(argv[1])).dump(4);
+        std::cout << nlohmann::json::parse(RLC_SOLVER::solve(argv[1])).dump(4);
     }
     return 0;
 }

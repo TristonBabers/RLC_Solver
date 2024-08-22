@@ -8,12 +8,12 @@ namespace RLC_SOLVER {
         if (!aNode->impedence.has_value()) {
             if (aNode->connections.size() > 1) {
                 std::string theParallelSum;
-                bool theFirst{true};
+                bool theFirst{true}; // Performance Optimization
                 for (const auto& theComponent : aNode->connections) {
                     std::string theRecursiveImpedence;
                     if (theComponent->nextNode == anEndNode) {
                         theRecursiveImpedence = "0"; // Performance Optimization
-                    } else {
+                    } else { // PROBLEM: Recursive impedence?!!?!
                         theRecursiveImpedence = findImpedences(theComponent->nextNode, anEndNode);
                     }
                     if (!theFirst) theParallelSum += " + ";
@@ -40,9 +40,9 @@ namespace RLC_SOLVER {
     // This assumes aStartNode is the node connected to V+ on the voltage source.
     void CircuitSolver::findVoltages(const NodePtr& aStartNode, const NodePtr& anEndNode, const std::vector<NodePtr>& aNodeList) {
         for (const NodePtr& theNode : aNodeList) {
-            if (theNode == aStartNode) theNode->voltage = aStartNode->getVoltage(); // Performance Optimization
+            if (theNode == aStartNode) theNode->voltage = aStartNode->getSource(); // Performance Optimization
             else if (theNode == anEndNode) theNode->voltage = "0"; // Performance Optimization
-            else theNode->voltage = aStartNode->getVoltage() + " * (" + theNode->impedence.value() + ") / (" + aStartNode->impedence.value() + ")"; // Voltage Divider
+            else theNode->voltage = aStartNode->getSource() + " * (" + theNode->impedence.value() + ") / (" + aStartNode->impedence.value() + ")"; // Voltage Divider
         }
     }
 

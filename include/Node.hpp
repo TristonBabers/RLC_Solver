@@ -26,6 +26,10 @@ namespace RLC_SOLVER {
             return delimiter(name);
         }
 
+        std::string getSource() const {
+            return delimiter(voltage);
+        }
+
         size_t preOrder{0};
         size_t postOrder{0};
         bool visited{false};
