@@ -91,6 +91,9 @@ namespace RLC_SOLVER {
 
         // Set up connections between nodes
         for (auto& theElement : theJson["Circuit"]["Nodes"].items()) {
+            if (theElement.key() == "GND") {
+            
+            }
             NodePtr theNode = theNodes[theElement.key()];
             for (auto& theComponentArray : theElement.value()) {
                 for (auto& theComponentElement : theComponentArray.items()) {
@@ -117,6 +120,7 @@ namespace RLC_SOLVER {
             theNodeVector.push_back(theNode);
         }
 
+        // Need to for ONLY voltage sources: make both ends of source equivalent // TODO DEBUG
         std::vector<Circuit> theCircuitVector;
         for (const auto& [theStartNode, theEndNode] : theSources) {
             theCircuitVector.emplace_back(theNodeVector, theStartNode, theEndNode);

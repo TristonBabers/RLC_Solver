@@ -13,7 +13,7 @@ namespace RLC_SOLVER {
                     std::string theRecursiveImpedence;
                     if (theComponent->nextNode == anEndNode) {
                         theRecursiveImpedence = "0"; // Performance Optimization
-                    } else { // PROBLEM: Recursive impedence?!!?!
+                    } else {
                         theRecursiveImpedence = findImpedences(theComponent->nextNode, anEndNode);
                     }
                     if (!theFirst) theParallelSum += " + ";
@@ -55,6 +55,7 @@ namespace RLC_SOLVER {
     }
     ///////////////////////////////////////////////////////// [README!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!] /////////////////////////////////////
     /* Note: this will work for Voltage Sources, but for Current Sources the order has to flip:
+    *                                                           // UPDATE: No it doesn't!!!
     findImpedences()
     findCurrents() // Current Divider
     findVoltages() // Ohm's Law: V = I * R
