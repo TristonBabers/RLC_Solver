@@ -15,7 +15,7 @@ This repository contains the backend code for the RLC Solver, designed to comput
 ## 🚩 Features
 - Symbolic computation for real-time front-end recalculations.
 - JSON data exchange using **nlohmann JSON** library.
-- Server-client communication using PHP (upcoming feature).
+- Server-client communication using PHP.
 
 ---
 
@@ -24,7 +24,7 @@ This repository contains the backend code for the RLC Solver, designed to comput
 1. **Requirements**  
    - C++20 or higher  
    - CMake (for building the project)  
-   - [nlohmann JSON](https://github.com/nlohmann/json) library  
+   - [nlohmann JSON](https://github.com/nlohmann/json) library (Already included)
 
 2. **Compilation**  
    ```bash
@@ -39,8 +39,12 @@ This repository contains the backend code for the RLC Solver, designed to comput
 ./rlc_solver test [Test Name]
 ```
 
+---
+
 ## 📝 Known Issues
 - Parallel circuits: There is a known issue with solving certain parallel configurations accurately. A fix is in progress.
+
+---
 
 ## 📋 To-Do List
 - [X] Create Web App in Javascript for Circuit Building
@@ -50,6 +54,8 @@ This repository contains the backend code for the RLC Solver, designed to comput
 - [ ] Fix parallel circuit calculations (C++ update needed)
 - [ ] Pretty up Frontend Interface
 - [ ] Do More Testing
+
+---
 
 ## 🚀 Usage
 You can pass a JSON string directly to the program to solve a circuit:
@@ -70,5 +76,7 @@ Expected Output:
 ```
 Using this output, you can calculate voltages and currents by solving the equations provided in the solution. The Components array is currently unused but reserved for future functionality.
 
+---
+
 ## 📄 License
-© Triston Babers 2025
+© Triston Babers 2025. All Rights Reserved.
