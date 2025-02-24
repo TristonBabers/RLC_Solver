@@ -33,6 +33,8 @@ namespace RLC_SOLVER {
             return theDagificationWorked;
         }
     protected:
+        // Returns true if there is only a connection to a... // NEW IDEA: Make this detect (floating components
+                                                              // = components that only connect to floating node, then remove them)
         static void explore(const NodePtr& aNode, size_t& aClock) {
             aNode->visited = true;
             aNode->preOrder = aClock++;

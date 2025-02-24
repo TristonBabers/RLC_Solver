@@ -62,15 +62,17 @@ namespace RLC_SOLVER {
         },
         "Sources": [
           {
-            "source-voltage_1332204801": {
+            "voltage-source_1332204801": {
               "VDD": "node_426320887",
-              "GND": "node_1300216332"
+              "GND": "node_1300216332",
+              "Type": "Voltage"
             }
           },
           {
-            "source-voltage_534814224": {
+            "current-source_534814224": {
               "VDD": "node_2114880340",
-              "GND": "node_1300216332"
+              "GND": "node_1300216332",
+              "Type": "Current"
             }
           }
         ]

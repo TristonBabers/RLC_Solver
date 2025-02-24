@@ -16,7 +16,7 @@ namespace RLC_SOLVER {
                     } else {
                         theRecursiveImpedence = findImpedences(theComponent->nextNode, anEndNode);
                     }
-                    if (!theFirst) theParallelSum += " + ";
+                    if (!theFirst) theParallelSum += " + "; 
                     if (theRecursiveImpedence != "0") {
                         theParallelSum += "1/(" + theComponent->getImpedence() + " + " + theRecursiveImpedence + ")"; // Parallel
                     } else {
@@ -66,7 +66,7 @@ namespace RLC_SOLVER {
         for (auto& theCircuit : aCircuits) {
             findImpedences(theCircuit.startNode, theCircuit.endNode);
             findVoltages(theCircuit.startNode, theCircuit.endNode, theCircuit.nodeList);
-            findCurrents(theCircuit.nodeList);
+            //findCurrents(theCircuit.nodeList); // Unused for now!
         }
          // TODO: Combine all nodes using superposition for multiple voltage sources (Add all voltages for all nodes, add all currents for all componentes together, according to matching names)
         return aCircuits[0]; // DEBUG // TODO: returns only the first solution
